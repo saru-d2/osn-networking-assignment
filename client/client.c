@@ -49,6 +49,12 @@ int getFile(const char *fileName)
         return -1;
     }
     puts(buff);
+    if (strcmp(buff, "error") == 0)
+    {
+        printf("error in file on server end\n");
+        // send(sock, "done", strlen("done"), 0);
+        return -1;
+    }
     printf("hmmm\n");
     int fileSize = atoi(buff);
     printf("%d\n", fileSize);

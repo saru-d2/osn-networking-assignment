@@ -6,6 +6,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #define RED "\033[0;31m"
 #define GREEN "\033[0;32m"
@@ -42,8 +43,20 @@ int sendFile()
     if (fd < 0)
     {
         perror("open");
+        send(new_sock, "error", strlen("error"), 0);
+        recv(new_sock, buff, strlen("done"), 0);
         return -1;
     }
+    struct stat st;
+    stat(fileName, &st);
+    if (S_ISDIR(st.st_mode))
+    {
+        perror("open");
+        send(new_sock, "error", strlen("error"), 0);
+        recv(new_sock, buff, strlen("done"), 0);
+        return -1;
+    }
+
     int fileSize = lseek(fd, 0, SEEK_END);
     char fileSizeStr[BUFFSIZE];
     sprintf(fileSizeStr, "%d", fileSize);
@@ -87,7 +100,7 @@ int sendFile()
             exit(EXIT_FAILURE);
         }
         memset(buff2, 0, BUFFSIZE);
-        
+
         // printf("%ld %d\n", strlen(buff), c++);
 
         bytesRead += n;
