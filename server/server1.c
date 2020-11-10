@@ -27,18 +27,18 @@ int sendFile()
 {
     char fileName[BUFFSIZE];
     memset(fileName, 0, BUFFSIZE);
-    if (recv(new_sock, fileName, BUFFSIZE, 0) < 0)
+
+    int recvRet = recv(new_sock, fileName, BUFFSIZE, 0);
+    send(new_sock, "done", strlen("done"), 0);
+    if (recvRet < 0)
     {
         perror("recv");
         exit(EXIT_FAILURE);
     }
-    if (send(new_sock, "done", strlen("done"), 0) < 0)
-    {
-        perror("send");
-        exit(EXIT_FAILURE);
-    }
+
     printf("reciecved request for %s\n", fileName);
     int fd = open(fileName, O_RDONLY, 0664);
+    // int fd2 = open("testing", O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd < 0)
     {
         perror("open");
@@ -48,52 +48,46 @@ int sendFile()
     char fileSizeStr[BUFFSIZE];
     sprintf(fileSizeStr, "%d", fileSize);
     printf("%s\n", fileSizeStr);
-    if (send(new_sock, fileSizeStr, strlen(fileSizeStr), 0) < 0)
-    {
-        perror("send");
-        return -1;
-    }
-    if (recv(new_sock, buff, strlen("done"), 0) < 0)
+    send(new_sock, fileSizeStr, strlen(fileSizeStr), 0);
+    recvRet = recv(new_sock, buff, strlen("done"), 0);
+    puts(buff);
+    if (recvRet < 0)
     {
         perror("recv");
         exit(EXIT_FAILURE);
     }
+
     lseek(fd, 0, SEEK_SET);
     int bytesRead = 0;
+    int n;
     float per;
-    int n, m;
-    int c = 0;
-    memset(buff, 0, BUFFSIZE);
     while (bytesRead < fileSize)
     {
-        memset(buff, 0, BUFFSIZE);
         per = (float)bytesRead / (float)fileSize * 100.00;
-        // printf("%f %%\r", per);
-        n = read(fd, buff, BUFFSIZE);
-        if (n < 0)
-        {
-            perror("read");
-            return -1;
-        }
-        m = send(new_sock, buff, strlen(buff), 0);
-        if (m < 0)
+        printf("%f %%\r", per);
+        memset(buff, 0, BUFFSIZE);
+        memset(buff2, 0, BUFFSIZE);
+        if (fileSize - bytesRead >= BUFFSIZE)
+            n = read(fd, buff, BUFFSIZE);
+        else
+            n = read(fd, buff, BUFFSIZE);
+        int q = send(new_sock, buff, strlen(buff), 0);
+        // int m = recv(new_sock, buff2, BUFFSIZE, 0);
+        // if (m < 0)
+        // {
+        //     perror("recv");
+        //     exit(EXIT_FAILURE);
+        // }
+        if (q < 0)
         {
             perror("send");
-            return -1;
-        }
-        if (recv(new_sock, buff2, BUFFSIZE, 0) < 0)
-        {
-            perror("recv");
             exit(EXIT_FAILURE);
         }
-        memset(buff2, 0, BUFFSIZE);
-        
-        printf("%ld %d\n", strlen(buff), c++);
+        // puts(buff2);
 
         bytesRead += n;
     }
-    printf("done\n");
-    sleep(1);
+    printf("%ld", lseek(fd, 0, SEEK_CUR));
     return 0;
 }
 
@@ -146,7 +140,6 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < numFiles; i++)
     {
-        puts("ready");
         sendFile();
     }
 

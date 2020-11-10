@@ -22,34 +22,14 @@ char buff[BUFFSIZE], buff2[BUFFSIZE];
 
 int getFile(const char *fileName)
 {
-    memset(buff, 0, BUFFSIZE);
-
-    if (send(sock, fileName, strlen(fileName), 0) < 0)
-    {
-        perror("send");
-        return -1;
-    }
-    if (recv(sock, buff, strlen("done"), 0) < 0)
-    {
-        perror("recv");
-        return -1;
-    }
-
+    send(sock, fileName, strlen(fileName), 0);
+    recv(sock, buff, BUFFSIZE, 0);
     printf("Request for %s has been made\n", fileName);
     memset(buff, 0, BUFFSIZE);
-    if (recv(sock, buff, BUFFSIZE, 0) < 0)
-    {
-        perror("recv");
-        return -1;
-    }
-    puts(buff);
-    if (send(sock, "done", strlen("done"), 0) < 0)
-    {
-        perror("send");
-        return -1;
-    }
-    puts(buff);
+    recv(sock, buff, BUFFSIZE, 0);
     printf("hmmm\n");
+    // send(sock, "done", strlen("done"), 0);
+
     int fileSize = atoi(buff);
     printf("%d\n", fileSize);
     int fd;
@@ -61,36 +41,18 @@ int getFile(const char *fileName)
     }
     int bytesread = 0;
     float per;
-    int n;
-    int c = 0;
     while (bytesread < fileSize)
     {
         per = (float)bytesread / (float)fileSize * 100.00;
-        // printf("%f %%\r", per);
+        printf("%f\r", per);
         memset(buff, 0, BUFFSIZE);
-        n = recv(sock, buff, BUFFSIZE, 0);
-        printf("n: %d %d\n", n, c++);
-        if (n < 0)
-        {
-            perror("recv");
-            exit(EXIT_FAILURE);
-        }
-        if (send(sock, "done", strlen("done"), 0) < 0)
-        {
-            perror("send");
-            return -1;
-        }
+        int n = recv(sock, buff, BUFFSIZE, 0);
+        // send(sock, "done", strlen("done"), 0);
+
         // puts(buff);
-        if (write(fd, buff, n) < 0)
-        {
-            perror("write");
-            return -1;
-        }
-        memset(buff, 0, BUFFSIZE);
+        write(fd, buff, n);
         bytesread += n;
     }
-    printf("done\n");
-    sleep(1);
     return 0;
 }
 
@@ -123,26 +85,17 @@ int main(int argc, char const *argv[])
         printf("No files were requested...\n");
         return 0;
     }
+    printf("hihi");
     fflush(NULL);
 
     char numfiles[BUFFSIZE];
     sprintf(numfiles, "%d", argc - 1);
-    if (send(sock, numfiles, strlen(numfiles), 0) < 0)
-    {
-        perror("send");
-        return -1;
-    }
-    if (recv(sock, buff, BUFFSIZE, 0) < 0)
-    {
-        perror("recv");
-        return -1;
-    }
-
-    puts(buff);
+    printf("%s\n", numfiles);
+    send(sock, numfiles, strlen(numfiles), 0);
+    recv(sock, buff, BUFFSIZE, 0);
 
     for (int i = 1; i < argc; i++)
     {
-        puts("ready");
         getFile(argv[i]);
     }
 }
