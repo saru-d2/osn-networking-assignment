@@ -68,7 +68,7 @@ int sendFile()
     {
         memset(buff, 0, BUFFSIZE);
         per = (float)bytesRead / (float)fileSize * 100.00;
-        // printf("%f %%\r", per);
+        printf("%f %%\r", per);
         n = read(fd, buff, BUFFSIZE);
         if (n < 0)
         {
@@ -88,7 +88,7 @@ int sendFile()
         }
         memset(buff2, 0, BUFFSIZE);
         
-        printf("%ld %d\n", strlen(buff), c++);
+        // printf("%ld %d\n", strlen(buff), c++);
 
         bytesRead += n;
     }

@@ -66,10 +66,10 @@ int getFile(const char *fileName)
     while (bytesread < fileSize)
     {
         per = (float)bytesread / (float)fileSize * 100.00;
-        // printf("%f %%\r", per);
+        printf("%f %%\r", per);
         memset(buff, 0, BUFFSIZE);
         n = recv(sock, buff, BUFFSIZE, 0);
-        printf("n: %d %d\n", n, c++);
+        // printf("n: %d %d\n", n, c++);
         if (n < 0)
         {
             perror("recv");
