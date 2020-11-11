@@ -71,6 +71,12 @@ int sendFile()
         perror("recv");
         exit(EXIT_FAILURE);
     }
+    recv(new_sock, buff, BUFFSIZE, 0);
+    send(new_sock, "done", strlen("done"), 0);
+    if (strcmp("error", buff) == 0){
+        printf("error on client side\n");
+        return -1;
+    }
     lseek(fd, 0, SEEK_SET);
     int bytesRead = 0;
     float per;
