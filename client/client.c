@@ -6,6 +6,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #define RED "\033[0;31m"
 #define GREEN "\033[0;32m"
@@ -60,11 +61,18 @@ int getFile(const char *fileName)
     printf("%d\n", fileSize);
     int fd;
     fd = open(fileName, O_WRONLY | O_TRUNC | O_CREAT, 0664);
-    if (fd < 0)
+    struct stat st;
+    stat(fileName, &st);
+    if (fd < 0 || S_ISDIR(st.st_mode))
     {
+        send(sock, "error", strlen("error"), 0);
+        recv(sock, buff, strlen("done"), 0);
         perror("open");
         return -1;
     }
+    send(sock, "noIssues", strlen("noIssues"), 0);
+    recv(sock, buff, strlen("done"), 0);
+
     int bytesread = 0;
     float per;
     int n;
